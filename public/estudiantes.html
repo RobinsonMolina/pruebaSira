@@ -1,0 +1,39 @@
+// Versión correcta con estructura de tabla HTML
+tabla.innerHTML = `
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Apellido</th>
+        <th>Documento</th>
+        <th>Celular</th>
+        <th>Correo</th>
+        <th>Dirección</th>
+        <th>Fecha Nacimiento</th>
+        <th>Periodo Ingreso</th>
+        <th>Prom. Acumulado</th>
+        <th>Prom. Ponderado</th>
+        <th>Curso</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${data[semestre].map(e => `
+        <tr>
+          <td>${e.nombre}</td>
+          <td>${e.apellido}</td>
+          <td>${e.numeroDocumento}</td>
+          <td>${e.celular}</td>
+          <td>${e.correo}</td>
+          <td>${e.direccion}</td>
+          <td>${e.fechaNacimiento ? new Date(e.fechaNacimiento).toLocaleDateString() : ''}</td>
+          <td>${e.periodoIngreso}</td>
+          <td>${e.promedioAcumulado}</td>
+          <td>${e.promedioPonderado}</td>
+          <td>${e.curso}</td>
+          <td><button class="btn btn-info" onclick="verAsignaturas('${e._id}')">Ver Asignaturas</button></td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+`;
