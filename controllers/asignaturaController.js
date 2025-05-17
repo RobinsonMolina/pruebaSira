@@ -53,19 +53,46 @@ exports.agregarAsignaturaAprobada = async (req, res) => {
 
 exports.agregarAsignaturaActual = async (req, res) => {
   try {
-    const { numeroDocumento, codigoAsignatura } = req.body;
+    // const { numeroDocumento, codigoAsignatura } = req.body;
 
-    const estudiante = await Estudiante.findOne({ numeroDocumento });
+    // const estudiante = await Estudiante.findOne({ numeroDocumento });
+    // if (!estudiante) {
+    //   return res.status(404).json({ error: 'Estudiante no encontrado' });
+    // }
 
-    if (!estudiante) {
-      return res.status(404).json({ error: 'Estudiante no encontrado' });
-    }
+    // const asignatura = await Asignatura.findOne({ id: codigoAsignatura });
+    // if (!asignatura) {
+    //   return res.status(404).json({ error: 'Asignatura no encontrada' });
+    // }
 
-    // Agrega el código de la asignatura al arreglo de asignaturas actuales
+    // // Verificar si ya la aprobó
+    // if (estudiante.asignaturasAprobadas.includes(codigoAsignatura)) {
+    //   return res.status(400).json({ error: 'El estudiante ya aprobó esta asignatura' });
+    // }
+
+    // // Verificar si ya está inscrita actualmente
+    // if (estudiante.asignaturasActuales.includes(codigoAsignatura)) {
+    //   return res.status(400).json({ error: 'El estudiante ya está inscrito en esta asignatura' });
+    // }
+
+    // // Verificar prerequisitos
+    // const prerequisitosNoCumplidos = asignatura.prerequisitos.filter(
+    //   prereq => !estudiante.asignaturasAprobadas.includes(prereq)
+    // );
+
+    // if (prerequisitosNoCumplidos.length > 0) {
+    //   return res.status(400).json({
+    //     error: 'El estudiante no ha aprobado los prerequisitos requeridos',
+    //     prerequisitosFaltantes: prerequisitosNoCumplidos
+    //   });
+    // }
+
+    // Si todo está bien, agregar a las actuales
     estudiante.asignaturasActuales.push(codigoAsignatura);
     await estudiante.save();
 
-    res.json({ mensaje: 'Asignatura agregada a las actuales del estudiante' });
+    //res.json({ mensaje: 'Asignatura agregada a las actuales del estudiante' });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al agregar asignatura actual', detalle: err.message });

@@ -42,8 +42,16 @@ exports.inscribirMateria = async (req, res) => {
     if (!asignatura) {
       return res.status(404).json({ error: 'Asignatura no encontrada' });
     }
+
+    if (estudiante.asignaturasAprobadas.includes(asignaturaId)) {
+       return res.status(400).json({ error: 'El estudiante ya aprobó esta asignatura' });
+    }
+
+    if (estudiante.asignaturasActuales.includes(asignaturaId)) {
+       return res.status(400).json({ error: 'El estudiante ya está inscrito en esta asignatura' });
+    }
     
-    // Verificar prerequisitos
+    //Verificar prerequisitos
     if (asignatura.prerequisitos && asignatura.prerequisitos.length > 0) {
       for (const prereq of asignatura.prerequisitos) {
         if (!estudiante.asignaturasAprobadas.includes(prereq)) {
@@ -58,6 +66,8 @@ exports.inscribirMateria = async (req, res) => {
     if (!estudiante.asignaturasActuales.includes(asignaturaId)) {
       estudiante.asignaturasActuales.push(asignaturaId);
       await estudiante.save();
+    }else{
+      return res.status(400).json({ error: 'Estudiante ya está inscrito en esta materia' });
     }
     
     res.json({ mensaje: 'Materia inscrita correctamente' });
@@ -141,5 +151,60 @@ exports.agregarAsignaturaAprobada = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al aprobar la asignatura', detalle: err.message });
+  }
+};
+
+// Controlador para actualizar estudiante
+exports.actualizarEstudiante = async (req, res) => {
+  try {
+    const {
+      id, nombre, apellido, periodoIngreso, fechaNacimiento, numeroDocumento, 
+      celular, correo, direccion, promedioAcumulado, promedioPonderado, 
+      semestreActual, curso
+    } = req.body;
+
+    const estudiante = await Estudiante.findOne({ id });
+    
+    if (!estudiante) {
+      return res.status(404).json({ error: 'Estudiante no encontrado' });
+    }
+    
+    // Actualizar los campos
+    estudiante.nombre = nombre;
+    estudiante.apellido = apellido;
+    estudiante.periodoIngreso = periodoIngreso;
+    estudiante.fechaNacimiento = fechaNacimiento;
+    estudiante.numeroDocumento = numeroDocumento;
+    estudiante.celular = celular;
+    estudiante.correo = correo;
+    estudiante.direccion = direccion;
+    estudiante.promedioAcumulado = promedioAcumulado;
+    estudiante.promedioPonderado = promedioPonderado;
+    estudiante.semestreActual = semestreActual;
+    estudiante.curso = curso;
+    
+    await estudiante.save();
+    
+    res.json({ mensaje: 'Estudiante actualizado correctamente' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al actualizar estudiante', detalle: err.message });
+  }
+};
+
+// Método para obtener un estudiante por ID
+exports.obtenerPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const estudiante = await Estudiante.findOne({ id });
+    
+    if (!estudiante) {
+      return res.status(404).json({ error: 'Estudiante no encontrado' });
+    }
+    
+    res.json(estudiante);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener datos del estudiante', detalle: err.message });
   }
 };

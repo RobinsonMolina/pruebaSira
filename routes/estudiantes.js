@@ -8,4 +8,8 @@ router.post('/inscribirAsignatura', controller.inscribirMateria);
 router.get('/:estudianteId/asignaturas', controller.obtenerAsignaturasEstudiante);
 router.post('/aprobarAsignatura', controller.agregarAsignaturaAprobada);
 
+// Nuevas rutas para la actualización de estudiantes
+router.get('/:id', controller.obtenerPorId);
+router.put('/actualizar', controller.actualizarEstudiante);
+
 module.exports = router;
