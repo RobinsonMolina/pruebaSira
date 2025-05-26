@@ -5,7 +5,7 @@ const asignaturaSchema = new mongoose.Schema({
   nombre: { type: String, required: true },
   numeroCredito: { type: Number, required: true },
   semestre: { type: Number, required: true },
-  prerequisitos: [{ type: String }] // Array de prerequisitos
+  prerequisitos: [{ type: String }]
 });
 
 module.exports = mongoose.model('Asignatura', asignaturaSchema);

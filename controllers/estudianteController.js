@@ -4,11 +4,11 @@ const Asignatura = require('../models/Asignatura');
 exports.crearEstudiante = async (req, res) => {
   try {
     const {
-      id, nombre, apellido, periodoIngreso, fechaNacimiento, numeroDocumento, celular, correo, direccion, promedioAcumulado, promedioPonderado, semestreActual, curso
+      id, nombre, apellido, periodoIngreso, fechaNacimiento, numeroDocumento, celular, direccion, promedioAcumulado, promedioPonderado, semestreActual, curso
     } = req.body;
 
     await Estudiante.create({
-      id, nombre, apellido, periodoIngreso, fechaNacimiento, numeroDocumento, celular, correo, direccion, promedioAcumulado, promedioPonderado, semestreActual, curso
+      id, nombre, apellido, periodoIngreso, fechaNacimiento, numeroDocumento, celular, direccion, promedioAcumulado, promedioPonderado, semestreActual, curso
     });
 
     res.json({ mensaje: 'Estudiante inscrito correctamente' });
