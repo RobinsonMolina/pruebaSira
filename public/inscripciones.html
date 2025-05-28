@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestión de Inscripciones</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-4">
+  <h2>Gestión de Inscripciones</h2>
+  
+  <!-- Formulario para inscribir estudiante -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5>Inscribir Estudiante a Asignatura</h5>
+    </div>
+    <div class="card-body">
+      <form id="formInscripcion">
+        <div class="row">
+          <div class="col-md-6">
+            <select class="form-select mb-2" id="estudianteId" name="estudianteId" required>
+              <option value="">Seleccionar Estudiante</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <select class="form-select mb-2" id="asignaturaId" name="asignaturaId" required>
+              <option value="">Seleccionar Asignatura</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-4">
+            <select class="form-select mb-2" id="periodoId" name="periodoId" required>
+              <option value="">Seleccionar Período</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <select class="form-select mb-2" id="curso" name="curso" required>
+              <option value="">Seleccionar Curso</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <select class="form-select mb-2" id="docenteId" name="docenteId">
+              <option value="">Seleccionar Docente (Opcional)</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-success" type="submit">Inscribir Estudiante</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5>Filtros</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-3">
+          <select class="form-select" id="filtroEstudiante" onchange="aplicarFiltros()">
+            <option value="">Todos los estudiantes</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" id="filtroPeriodo" onchange="aplicarFiltros()">
+            <option value="">Todos los períodos</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" id="filtroCurso" onchange="aplicarFiltros()">
+            <option value="">Todos los cursos</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" id="filtroEstado" onchange="aplicarFiltros()">
+            <option value="">Todos los estados</option>
+            <option value="inscrito">Inscrito</option>
+            <option value="aprobado">Aprobado</option>
+            <option value="reprobado">Reprobado</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de inscripciones -->
+  <div class="card">
+    <div class="card-header">
+      <h5>Lista de Inscripciones</h5>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Estudiante</th>
+              <th>Asignatura</th>
+              <th>Período</th>
+              <th>Curso</th>
+              <th>Docente</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaInscripciones">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <a href="dashboard.html" class="btn btn-secondary mt-3">Volver al Dashboard</a>
+
+  <!-- Modal para cambiar estado -->
+  <div class="modal fade" id="modalEstado" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Cambiar Estado de Inscripción</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formEstado">
+            <input type="hidden" id="inscripcionIdModal">
+            <div class="mb-3">
+              <label class="form-label">Nuevo Estado:</label>
+              <select class="form-select" id="nuevoEstado" required>
+                <option value="inscrito">Inscrito</option>
+                <option value="aprobado">Aprobado</option>
+                <option value="reprobado">Reprobado</option>
+                <option value="cancelado">Cancelado</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Cambiar Estado</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let inscripciones = [];
+    let estudiantes = [];
+    let asignaturas = [];
+    let periodos = [];
+    let docentes = [];
+    let cursos = [];
+
+    // Cargar datos al iniciar
+    document.addEventListener('DOMContentLoaded', async () => {
+      await cargarDatos();
+      await cargarInscripciones();
+    });
+
+    async function cargarDatos() {
+      try {
+        //Cargar estudiantes
+        const responseEstudiantes = await fetch('/api/estudiantes');
+        estudiantes = await responseEstudiantes.json();
+        llenarSelect('estudianteId', estudiantes, 'id', (est) => `${est.nombre} ${est.apellido} (${est.numeroDocumento})`);
+        llenarSelect('filtroEstudiante', estudiantes, 'id', (est) => `${est.nombre} ${est.apellido}`);
+
+        // Cargar asignaturas
+        const responseAsignaturas = await fetch('/api/asignaturas');
+        asignaturas = await responseAsignaturas.json();
+        llenarSelect('asignaturaId', asignaturas, 'id', (asig) => `${asig.nombre} (${asig.numeroCredito} créditos)`);
+
+        // Cargar períodos
+        const responsePeriodos = await fetch('/api/periodos');
+        periodos = await responsePeriodos.json();
+        llenarSelect('periodoId', periodos, 'id', 'nombrePeriodo');
+        llenarSelect('filtroPeriodo', periodos, 'id', 'nombrePeriodo');
+
+        // Cargar cursos
+        const responseCursos = await fetch('/api/cursos');
+        cursos = await responseCursos.json();
+        llenarSelect('curso', cursos, 'id', (curso) => `${curso.nombre || curso.numeroCurso || curso.id}`);
+        llenarSelect('filtroCurso', cursos, 'id', (curso) => `${curso.nombre || curso.numeroCurso || curso.id}`);
+
+        // Cargar docentes
+        const responseDocentes = await fetch('/api/docentes');
+        docentes = await responseDocentes.json();
+        llenarSelect('docenteId', docentes, 'id', (doc) => `${doc.nombre} ${doc.apellido}`);
+      } catch (error) {
+        console.error('Error al cargar datos:', error);
+        alert('Error al cargar datos iniciales');
+      }
+    }
+
+    function llenarSelect(selectId, datos, valueField, textField) {
+      const select = document.getElementById(selectId);
+      const optionsToKeep = select.querySelectorAll('option[value=""]');
+      select.innerHTML = '';
+      optionsToKeep.forEach(opt => select.appendChild(opt));
+      
+      datos.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item[valueField];
+        option.textContent = typeof textField === 'function' ? textField(item) : item[textField];
+        select.appendChild(option);
+      });
+    }
+
+async function cargarInscripciones() {
+  try {
+    const response = await fetch('/api/inscripciones');
+    let inscripciones = await response.json();
+
+    // Transformar los datos para incluir los objetos completos
+    inscripciones = inscripciones.map(inscripcion => {
+      const estudiante = estudiantes.find(est => est.id === inscripcion.estudiante);
+      const asignatura = asignaturas.find(asig => asig.id === inscripcion.asignatura);
+      const periodoAcademico = periodos.find(per => per.id === inscripcion.periodoAcademico);
+      const curso = cursos.find(cur => cur.id === inscripcion.curso);
+      const docente = docentes.find(doc => doc.id === inscripcion.docente);
+
+      return {
+        ...inscripcion,
+        estudiante,
+        asignatura,
+        periodoAcademico,
+        curso,
+        docente
+      };
+    });
+
+    console.log('Datos de inscripciones cargados:', inscripciones);
+    mostrarInscripciones(inscripciones);
+  } catch (error) {
+    console.error('Error al cargar inscripciones:', error);
+    alert('Error al cargar inscripciones');
+  }
+}
+
+
+function mostrarInscripciones(inscripcionesAMostrar) {
+  const tbody = document.getElementById('tablaInscripciones');
+  tbody.innerHTML = '';
+
+  console.log('Inscripciones a mostrar:', inscripcionesAMostrar); // Añade este log
+
+  inscripcionesAMostrar.forEach(inscripcion => {
+    const tr = document.createElement('tr');
+    const estadoClass = {
+      'inscrito': 'text-primary',
+      'aprobado': 'text-success',
+      'reprobado': 'text-danger',
+      'cancelado': 'text-warning'
+    }[inscripcion.estado?.toLowerCase()] || '';
+
+    const estadoFormateado = inscripcion.estado ?
+      inscripcion.estado.charAt(0).toUpperCase() + inscripcion.estado.slice(1).toLowerCase() :
+      'N/A';
+
+    console.log('Inscripción:', inscripcion); // Añade este log
+
+    tr.innerHTML = `
+      <td>${inscripcion.estudiante?.nombre || 'N/A'} ${inscripcion.estudiante?.apellido || ''}</td>
+      <td>${inscripcion.asignatura?.nombre || 'N/A'}</td>
+      <td>${inscripcion.periodoAcademico?.nombrePeriodo || 'N/A'}</td>
+      <td>${inscripcion.curso?.nombre || inscripcion.curso?.numeroCurso || 'N/A'}</td>
+      <td>${inscripcion.docente ? `${inscripcion.docente.nombre} ${inscripcion.docente.apellido}` : 'Sin asignar'}</td>
+      <td><span class="${estadoClass}">${estadoFormateado}</span></td>
+      <td>
+        <button class="btn btn-sm btn-warning" onclick="cambiarEstado('${inscripcion.id}', '${inscripcion.estado}')">
+          Cambiar Estado
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+
+    document.getElementById('formInscripcion').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target));
+      
+      // Asegurar que el estado inicial sea 'inscrito' (minúscula)
+      data.estado = 'inscrito';
+      
+      try {
+        const response = await fetch('/api/inscripciones', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+          alert('Estudiante inscrito exitosamente');
+          document.getElementById('formInscripcion').reset();
+          cargarInscripciones();
+        } else {
+          const error = await response.json();
+          alert('Error: ' + error.error);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al inscribir estudiante');
+      }
+    });
+
+    function cambiarEstado(inscripcionId, estadoActual) {
+      document.getElementById('inscripcionIdModal').value = inscripcionId;
+      document.getElementById('nuevoEstado').value = estadoActual?.toLowerCase() || 'inscrito';
+      new bootstrap.Modal(document.getElementById('modalEstado')).show();
+    }
+
+    document.getElementById('formEstado').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const inscripcionId = document.getElementById('inscripcionIdModal').value;
+      const nuevoEstado = document.getElementById('nuevoEstado').value;
+      
+      try {
+        const response = await fetch('/api/inscripciones/estado', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ inscripcionId, nuevoEstado })
+        });
+        
+        if (response.ok) {
+          alert('Estado actualizado exitosamente');
+          bootstrap.Modal.getInstance(document.getElementById('modalEstado')).hide();
+          cargarInscripciones();
+        } else {
+          const error = await response.json();
+          alert('Error: ' + error.error);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al cambiar estado');
+      }
+    });
+
+    function aplicarFiltros() {
+      const filtroEstudiante = document.getElementById('filtroEstudiante').value;
+      const filtroPeriodo = document.getElementById('filtroPeriodo').value;
+      const filtroCurso = document.getElementById('filtroCurso').value;
+      const filtroEstado = document.getElementById('filtroEstado').value;
+      
+      let inscripcionesFiltradas = [...inscripciones];
+      
+      if (filtroEstudiante) {
+        inscripcionesFiltradas = inscripcionesFiltradas.filter(insc => insc.estudiante === filtroEstudiante);
+      }
+      
+      if (filtroPeriodo) {
+        inscripcionesFiltradas = inscripcionesFiltradas.filter(insc => insc.periodoAcademico === filtroPeriodo);
+      }
+      
+      if (filtroCurso) {
+        inscripcionesFiltradas = inscripcionesFiltradas.filter(insc => insc.curso === filtroCurso);
+      }
+      
+      if (filtroEstado) {
+        inscripcionesFiltradas = inscripcionesFiltradas.filter(insc => insc.estado?.toLowerCase() === filtroEstado);
+      }
+      
+      mostrarInscripciones(inscripcionesFiltradas);
+    }
+  </script>
+</body>
+</html>

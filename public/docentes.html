@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestión de Docentes</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-4">
+  <h2>Gestión de Docentes</h2>
+  
+  <!-- Formulario para crear/actualizar docente -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 id="formTitle">Crear Docente</h5>
+    </div>
+    <div class="card-body">
+      <form id="formDocente">
+        <input type="hidden" id="docenteId" name="id" />
+        <div class="row">
+          <div class="col-md-6">
+            <input class="form-control mb-2" id="nombre" name="nombre" placeholder="Nombre" required />
+          </div>
+          <div class="col-md-6">
+            <input class="form-control mb-2" id="apellido" name="apellido" placeholder="Apellido" required />
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <input class="form-control mb-2" id="correo" name="correo" type="email" placeholder="Correo electrónico" required />
+          </div>
+          <div class="col-md-6">
+            <input class="form-control mb-2" id="telefono" name="telefono" placeholder="Teléfono" required />
+          </div>
+        </div>
+        <button class="btn btn-success me-2" type="submit" id="btnGuardar">Guardar Docente</button>
+        <button class="btn btn-secondary" type="button" id="btnCancelar" onclick="limpiarFormulario()">Cancelar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Lista de docentes -->
+  <div class="card">
+    <div class="card-header">
+      <h5>Lista de Docentes</h5>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Apellido</th>
+              <th>Correo</th>
+              <th>Teléfono</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaDocentes">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <a href="dashboard.html" class="btn btn-secondary mt-3">Volver al Dashboard</a>
+
+  <script>
+    let modoEdicion = false;
+
+    // Cargar docentes al iniciar
+    document.addEventListener('DOMContentLoaded', cargarDocentes);
+
+    async function cargarDocentes() {
+      try {
+        const response = await fetch('/api/docentes');
+        const docentes = await response.json();
+        mostrarDocentes(docentes);
+      } catch (error) {
+        console.error('Error al cargar docentes:', error);
+        alert('Error al cargar docentes');
+      }
+    }
+
+    function mostrarDocentes(docentes) {
+      const tbody = document.getElementById('tablaDocentes');
+      tbody.innerHTML = '';
+      
+      docentes.forEach(docente => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${docente.nombre}</td>
+          <td>${docente.apellido}</td>
+          <td>${docente.correo}</td>
+          <td>${docente.telefono}</td>
+          <td>
+            <button class="btn btn-sm btn-warning me-1" onclick="editarDocente('${docente.id}')">Editar</button>
+            <button class="btn btn-sm btn-danger" onclick="eliminarDocente('${docente.id}')">Eliminar</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById('formDocente').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target));
+      
+      try {
+        let response;
+        if (modoEdicion) {
+          response = await fetch('/api/docentes', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+        } else {
+          // Generar ID único para nuevo docente
+          data.id = 'DOC-' + Date.now();
+          response = await fetch('/api/docentes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+        }
+        
+        if (response.ok) {
+          alert(modoEdicion ? 'Docente actualizado exitosamente' : 'Docente creado exitosamente');
+          limpiarFormulario();
+          cargarDocentes();
+        } else {
+          const error = await response.json();
+          alert('Error: ' + error.error);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al guardar docente');
+      }
+    });
+
+    async function editarDocente(id) {
+      try {
+        const response = await fetch(`/api/docentes/${id}`);
+        const docente = await response.json();
+        
+        document.getElementById('docenteId').value = docente.id;
+        document.getElementById('nombre').value = docente.nombre;
+        document.getElementById('apellido').value = docente.apellido;
+        document.getElementById('correo').value = docente.correo;
+        document.getElementById('telefono').value = docente.telefono;
+        
+        document.getElementById('formTitle').textContent = 'Editar Docente';
+        document.getElementById('btnGuardar').textContent = 'Actualizar Docente';
+        modoEdicion = true;
+      } catch (error) {
+        console.error('Error al cargar docente:', error);
+        alert('Error al cargar datos del docente');
+      }
+    }
+
+    async function eliminarDocente(id) {
+      if (confirm('¿Está seguro de eliminar este docente?')) {
+        try {
+          const response = await fetch(`/api/docentes/${id}`, { method: 'DELETE' });
+          if (response.ok) {
+            alert('Docente eliminado exitosamente');
+            cargarDocentes();
+          } else {
+            const error = await response.json();
+            alert('Error: ' + error.error);
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Error al eliminar docente');
+        }
+      }
+    }
+
+    function limpiarFormulario() {
+      document.getElementById('formDocente').reset();
+      document.getElementById('formTitle').textContent = 'Crear Docente';
+      document.getElementById('btnGuardar').textContent = 'Guardar Docente';
+      modoEdicion = false;
+    }
+  </script>
+</body>
+</html>

@@ -18,6 +18,17 @@ exports.crearEstudiante = async (req, res) => {
   }
 };
 
+exports.obtenerEstudiantes = async (req, res) => {
+  try {
+    const estudiantes = await Estudiante.find();
+    res.json(estudiantes);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener los estudiantes', detalle: err.message });
+  }
+};
+
+
 exports.obtenerPorSemestre = async (req, res) => {
   const estudiantes = await Estudiante.find();
   const agrupados = {};

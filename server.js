@@ -10,8 +10,8 @@ mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
-.then(() => console.log('✅ Conectado a MongoDB Atlas'))
-.catch(err => console.error('❌ Error al conectar a MongoDB:', err));
+.then(() => console.log('Conectado a MongoDB Atlas'))
+.catch(err => console.error('Error al conectar a MongoDB:', err));
 
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
@@ -33,7 +33,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Rutas
 app.use('/api/asignaturas', require('./routes/asignaturas'));
 app.use('/api/estudiantes', require('./routes/estudiantes'));
+app.use('/api/docentes', require('./routes/docente'));
+app.use('/api/periodos', require('./routes/periodo'));
+app.use('/api/inscripciones', require('./routes/inscripcion'));
+app.use('/api/notas', require('./routes/nota'));
+app.use('/api/cursos', require('./routes/curso'));
 app.use('/auth', require('./routes/auth'));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
+app.listen(PORT, () => console.log(`Servidor en puerto ${PORT} en http://localhost:${PORT}`));
