@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registrar Notas</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-4">
+  <h2 class="text-center mb-4">Registrar Notas por Curso</h2>
+
+  <!-- Selector de curso -->
+  <div class="mb-4">
+    <label for="cursoSelect" class="form-label">Selecciona un curso:</label>
+    <select id="cursoSelect" class="form-select">
+      <option value="">-- Selecciona un curso --</option>
+    </select>
+  </div>
+
+  <!-- Tabla de estudiantes -->
+  <form id="formNota" class="d-none">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Estudiante</th>
+          <th>Nota Final</th>
+          <th>Observaciones</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaEstudiantes"></tbody>
+    </table>
+  </form>
+
+  <a href="/dashboard" class="btn btn-secondary">Volver al Dashboard</a>
+
+  <script>
+    const cursoSelect = document.getElementById('cursoSelect');
+    const tablaEstudiantes = document.getElementById('tablaEstudiantes');
+    const formNota = document.getElementById('formNota');
+
+    // Obtener cursos
+    fetch('/api/cursos')
+      .then(res => res.json())
+      .then(cursos => {
+        cursos.forEach(curso => {
+          const option = document.createElement('option');
+          option.value = curso.id;
+          option.textContent = `${curso.asignatura} - ${curso.docente} (${curso.periodo})`;
+          cursoSelect.appendChild(option);
+        });
+      });
+
+    // Cuando se selecciona un curso
+    cursoSelect.addEventListener('change', () => {
+      const cursoId = cursoSelect.value;
+      tablaEstudiantes.innerHTML = '';
+      formNota.classList.add('d-none');
+
+      if (!cursoId) return;
+
+      fetch(`/api/estudiantes/cursos/${cursoId}`)
+        .then(res => res.json())
+        .then(estudiantes => {
+          if (estudiantes.length === 0) {
+            tablaEstudiantes.innerHTML = '<tr><td colspan="4">No hay estudiantes en este curso.</td></tr>';
+            return;
+          }
+
+          formNota.classList.remove('d-none');
+
+          estudiantes.forEach(est => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${est.nombre} ${est.apellido}</td>
+              <td><input type="number" step="0.1" min="0" max="5" class="form-control" id="nota-${est.id}" /></td>
+              <td><input type="text" class="form-control" id="obs-${est.id}" /></td>
+              <td>
+                <button type="button" class="btn btn-primary btn-sm" onclick="guardarNota('${est.id}')">Guardar</button>
+              </td>
+            `;
+            tablaEstudiantes.appendChild(row);
+          });
+        });
+    });
+
+    function guardarNota(estudianteId) {
+      const nota = document.getElementById(`nota-${estudianteId}`).value;
+      const obs = document.getElementById(`obs-${estudianteId}`).value;
+
+      fetch('/api/notas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          estudianteId,
+          notaFinal: parseFloat(nota),
+          observaciones: obs
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.mensaje || 'Nota registrada correctamente');
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Error al registrar la nota');
+      });
+    }
+  </script>
+</body>
+</html>

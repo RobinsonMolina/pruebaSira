@@ -7,6 +7,7 @@ const cursoSchema = new mongoose.Schema({
   asignatura: { type: String, required: true, ref: 'Asignatura' },
   docente: { type: String, required: true, ref: 'Docente' },
   periodo: { type: String, required: true, ref: 'PeriodoAcademico' },
+  estudiantes: [{ type: String, ref: 'Estudiante' }],
   activo: { type: Boolean, default: true }
 });
 

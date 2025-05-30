@@ -5,20 +5,90 @@
   <title>Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="container mt-4">
-  <h2>Asignaturas por Curso</h2>
-  <div id="asignaturasPorCurso" class="mt-4"></div>
+<body class="container my-5">
 
-  <a href="inscribirEstudiante.html" class="btn btn-primary mt-3">Inscribir Estudiante</a>
-  <a href="agregarAsignatura.html" class="btn btn-secondary mt-3">Inscribir Asignatura</a>
-  <a href="inscribirAsignatura.html" class="btn btn-info mt-3">Inscribir Estudiante</a>
-  <a href="asignaturas.html" class="btn btn-secondary mt-3">Ver Asignaturas</a>
-  <a href="estudiantes.html" class="btn btn-info mt-3">Ver Estudiantes</a>
-  <a href="docentes.html" class="btn btn-warning mt-3">Docentes</a>
-  <a href="inscripciones.html" class="btn btn-success mt-3">Inscripciones</a>
-  <a href="verPeriodos.html" class="btn btn-success mt-3">Periodos</a>
-  <a href="crearPeriodos.html" class="btn btn-success mt-3">Crear Período</a>
-  <a href="verCurso.html" class="btn btn-success mt-3">Cursos</a>
-  <a href="CrearCurso.html" class="btn btn-success mt-3">Crear Curso</a>
+  <h1 class="mb-4 text-center">SIGACI</h1>
+  <div id="asignaturasPorCurso" class="mb-5"></div>
+
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+
+    <!-- Estudiantes -->
+    <div class="col">
+      <div class="card h-100">
+        <div class="card-header bg-primary text-white">Estudiantes</div>
+        <div class="card-body d-grid gap-2">
+          <a href="inscribirEstudiante.html" class="btn btn-success">Inscribir Estudiante</a>
+          <a href="estudiantes.html" class="btn btn-success">Ver Estudiantes</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Asignaturas -->
+    <div class="col">
+      <div class="card h-100">
+        <div class="card-header bg-primary text-white">Asignaturas</div>
+        <div class="card-body d-grid gap-2">
+          <a href="agregarAsignatura.html" class="btn btn-success">Agregar Asignatura</a>
+          <a href="asignaturas.html" class="btn btn-success">Ver Asignaturas</a>
+          <a href="inscribirAsignatura.html" class="btn btn-success">Inscribir Asignatura</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Docentes -->
+    <div class="col">
+      <div class="card h-100">
+        <div class="card-header bg-primary text-dark">Docentes</div>
+        <div class="card-body d-grid gap-2">
+          <a href="docentes.html" class="btn btn-success">Ver Docentes</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inscripciones -->
+    <div class="col">
+      <div class="card h-100">
+        <div class="card-header bg-primary text-white">Inscripciones</div>
+        <div class="card-body d-grid gap-2">
+          <a href="inscripciones.html" class="btn btn-success">Ver Inscripciones</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Periodos -->
+    <div class="col">
+      <div class="card h-100">
+        <div class="card-header bg-primary text-white">Periodos</div>
+        <div class="card-body d-grid gap-2">
+          <a href="verPeriodos.html" class="btn btn-success">Ver Periodos</a>
+          <a href="crearPeriodos.html" class="btn btn-success">Crear Período</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cursos -->
+    <div class="col">
+      <div class="card h-100">
+        <div class="card-header bg-primary text-white">Cursos</div>
+        <div class="card-body d-grid gap-2">
+          <a href="verCurso.html" class="btn btn-success">Ver Cursos</a>
+          <a href="CrearCurso.html" class="btn btn-success">Crear Curso</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notas -->
+    <div class="col">
+      <div class="card h-100">
+        <div class="card-header bg-primary text-white">Notas</div>
+        <div class="card-body d-grid gap-2">
+          <a href="registrarNota.html" class="btn btn-success">Registrar Nota</a>
+          <a href="actualizarNota.html" class="btn btn-success">Actualizar Nota</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
 </body>
 </html>

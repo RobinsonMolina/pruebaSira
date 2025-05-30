@@ -54,3 +54,20 @@ exports.obtenerCursos = async (req, res) => {
   }
 };
 
+exports.obtenerEstudiantesPorCurso = async (req, res) => {
+  try {
+    const cursoId = req.params.cursoId;
+
+    const curso = await Curso.findOne({ id: cursoId });
+    if (!curso) {
+      return res.status(404).json({ mensaje: 'Curso no encontrado' });
+    }
+
+    const estudiantes = await Estudiante.find({ id: { $in: curso.estudiantes } });
+
+    res.status(200).json(estudiantes);
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al obtener los estudiantes', error: error.message });
+  }
+};
+

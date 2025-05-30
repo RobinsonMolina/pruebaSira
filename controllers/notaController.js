@@ -1,7 +1,7 @@
 const Nota = require('../models/Nota');
 const Inscripcion = require('../models/Inscripcion');
 const Estudiante = require('../models/Estudiante');
-let contadorNotes = 1000000000;
+const getNextSecuencia = require('../models/secuencias');
 
 exports.registrarNota = async (req, res) => {
   try {
@@ -24,9 +24,13 @@ exports.registrarNota = async (req, res) => {
       return res.status(400).json({ error: 'Ya existe una nota registrada para esta inscripción' });
     }
     
+
+    const nextSecuencia = await getNextSecuencia('nota', 100000);
+    const idFormateado = nextSecuencia.toString().padStart(6, '0');
+
     // Crear la nota
     const nuevaNota = await Nota.create({
-      id: contadorNotes++,
+      id: idFormateado,
       notaFinal,
       idInscripcion: inscripcionId,
       observaciones

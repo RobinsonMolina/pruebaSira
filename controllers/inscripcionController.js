@@ -2,36 +2,29 @@ const Inscripcion = require('../models/Inscripcion');
 const Estudiante = require('../models/Estudiante');
 const Asignatura = require('../models/Asignatura');
 const PeriodoAcademico = require('../models/PeriodoAcademico');
-const Curso = require('../models/Curso'); // Asegúrate de tener este modelo
-
-const { v4: uuidv4 } = require('uuid');
+const Curso = require('../models/Curso');
+const getNextSecuencia = require('../models/secuencias');
 
 exports.inscribirEstudiante = async (req, res) => {
   try {
     const { estudianteId, asignaturaId, periodoId, curso, docenteId } = req.body;
 
-    console.log('Datos recibidos:', req.body); // Debug
-
-    // Validar campos requeridos
     if (!estudianteId || !asignaturaId || !periodoId || !curso) {
       return res.status(400).json({
         error: 'Faltan campos requeridos: estudianteId, asignaturaId, periodoId, curso'
       });
     }
 
-    // Verificar que el estudiante existe
     const estudiante = await Estudiante.findOne({ id: estudianteId });
     if (!estudiante) {
       return res.status(404).json({ error: 'Estudiante no encontrado' });
     }
 
-    // Verificar que la asignatura existe
     const asignatura = await Asignatura.findOne({ id: asignaturaId });
     if (!asignatura) {
       return res.status(404).json({ error: 'Asignatura no encontrada' });
     }
 
-    // Verificar que el período existe y está activo
     const periodo = await PeriodoAcademico.findOne({ id: periodoId });
     if (!periodo) {
       return res.status(404).json({ error: 'Período académico no encontrado' });
@@ -40,13 +33,11 @@ exports.inscribirEstudiante = async (req, res) => {
       return res.status(400).json({ error: 'El período académico no está activo' });
     }
 
-    // Verificar que el curso existe
     const cursoExiste = await Curso.findOne({ id: curso });
     if (!cursoExiste) {
       return res.status(404).json({ error: 'Curso no encontrado' });
     }
 
-    // Verificar si ya está inscrito en esta asignatura en este período y curso
     const inscripcionExistente = await Inscripcion.findOne({
       estudiante: estudianteId,
       asignatura: asignaturaId,
@@ -58,12 +49,10 @@ exports.inscribirEstudiante = async (req, res) => {
       return res.status(400).json({ error: 'El estudiante ya está inscrito en esta asignatura para este período y curso' });
     }
 
-    // Verificar si ya aprobó la asignatura
     if (estudiante.asignaturasAprobadas.includes(asignaturaId)) {
       return res.status(400).json({ error: 'El estudiante ya aprobó esta asignatura' });
     }
 
-    // Verificar prerrequisitos
     if (asignatura.prerequisitos && asignatura.prerequisitos.length > 0) {
       const prerequisitosNoCumplidos = asignatura.prerequisitos.filter(
         prereq => !estudiante.asignaturasAprobadas.includes(prereq)
@@ -77,7 +66,6 @@ exports.inscribirEstudiante = async (req, res) => {
       }
     }
 
-    // Validar promedio (si es menor a 2.0, máximo 3 materias)
     if (estudiante.promedioAcumulado <= 2.0) {
       const inscripcionesActuales = await Inscripcion.countDocuments({
         estudiante: estudianteId,
@@ -92,7 +80,6 @@ exports.inscribirEstudiante = async (req, res) => {
       }
     }
 
-    // Validar límite de créditos (máximo 15)
     const inscripcionesDelPeriodo = await Inscripcion.find({
       estudiante: estudianteId,
       periodoAcademico: periodoId,
@@ -111,9 +98,11 @@ exports.inscribirEstudiante = async (req, res) => {
       });
     }
 
-    // Crear la inscripción con UUID
+    const nextSecuencia = await getNextSecuencia('inscripcion', 200000);
+    const idFormateado = nextSecuencia.toString().padStart(6, '0');
+
     const nuevaInscripcion = await Inscripcion.create({
-      id: uuidv4(), // Usar UUID en lugar de un contador
+      id: idFormateado,
       estudiante: estudianteId,
       asignatura: asignaturaId,
       periodoAcademico: periodoId,
@@ -121,6 +110,12 @@ exports.inscribirEstudiante = async (req, res) => {
       docente: docenteId || null,
       estado: 'inscrito'
     });
+
+    // Agregar el estudiante al curso
+    if (!cursoExiste.estudiantes.includes(estudianteId)) {
+      cursoExiste.estudiantes.push(estudianteId);
+      await cursoExiste.save();
+    }
 
     // Actualizar asignaturas actuales del estudiante
     if (!estudiante.asignaturasActuales.includes(asignaturaId)) {
@@ -140,6 +135,7 @@ exports.inscribirEstudiante = async (req, res) => {
 };
 
 
+
 exports.obtenerInscripciones = async (req, res) => {
   try {
     const inscripciones = await Inscripcion.find();
@@ -157,7 +153,7 @@ exports.obtenerInscripcionesPorEstudiante = async (req, res) => {
     const inscripciones = await Inscripcion.find({ estudiante: estudianteId })
       .populate('asignatura', 'nombre numeroCredito semestre')
       .populate('periodoAcademico', 'nombrePeriodo')
-      .populate('curso', 'nombre numeroCurso') // AGREGAR populate para curso
+      .populate('curso', 'nombre numeroCurso')
       .populate('docente', 'nombre apellido');
     
     res.json(inscripciones);
@@ -174,7 +170,7 @@ exports.obtenerInscripcionesPorPeriodo = async (req, res) => {
     const inscripciones = await Inscripcion.find({ periodoAcademico: periodoId })
       .populate('estudiante', 'nombre apellido numeroDocumento semestreActual')
       .populate('asignatura', 'nombre numeroCredito semestre')
-      .populate('curso', 'nombre numeroCurso') // AGREGAR populate para curso
+      .populate('curso', 'nombre numeroCurso')
       .populate('docente', 'nombre apellido');
     
     res.json(inscripciones);

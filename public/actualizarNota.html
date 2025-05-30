@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Actualizar Nota</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container my-5">
+  <h2 class="mb-4 text-center">Actualizar Nota</h2>
+  
+  <form id="formActualizarNota">
+    <div class="mb-3">
+      <label for="notaId" class="form-label">ID de Nota</label>
+      <input type="text" class="form-control" id="notaId" required>
+    </div>
+    <div class="mb-3">
+      <label for="notaFinal" class="form-label">Nueva Nota Final (0.0 - 5.0)</label>
+      <input type="number" step="0.1" class="form-control" id="notaFinal" min="0" max="5" required>
+    </div>
+    <div class="mb-3">
+      <label for="observaciones" class="form-label">Nuevas Observaciones</label>
+      <textarea class="form-control" id="observaciones"></textarea>
+    </div>
+    <button type="submit" class="btn btn-warning">Actualizar Nota</button>
+  </form>
+
+  <div id="respuesta" class="mt-4"></div>
+
+  <script>
+    document.getElementById('formActualizarNota').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const notaId = document.getElementById('notaId').value;
+      const notaFinal = parseFloat(document.getElementById('notaFinal').value);
+      const observaciones = document.getElementById('observaciones').value;
+
+      const res = await fetch('/api/notas/actualizar', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notaId, notaFinal, observaciones })
+      });
+
+      const data = await res.json();
+      document.getElementById('respuesta').innerText = data.mensaje || data.error;
+    });
+  </script>
+</body>
+</html>
